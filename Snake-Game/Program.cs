@@ -1,36 +1,52 @@
 ﻿using System;
-using System.Timers;
 
 namespace Snake_Game
 {
     class Program
     {
-        static int MeX;
-        static int MeY;
-        static char MeDir;  //Direction in witch the player is going (west, east, north, south)
-        static int OldMeX;
-        static int OldMeY;
-        static char MeChar = 'X';
+        static int SnakeSize = 3;
+        static int[] SnakeX = new int[SnakeSize];
+        static int[] SnakeY = new int[SnakeSize];
+        static char SnakeDir; //Direction in witch the player is going (west, east, north, south)
+        static char OldSnakeDir;
+        static int OldSnakeX;
+        static int OldSnakeY;
+        static char SnakeChar = 'X';
+
+        static int FoodX;
+        static int FoodY;
+        static int OldFoodX;
+        static int OldFoodY;
+        static char FoodChar = '$';
 
         static bool SketchOn = false;
         static char SketchChar = 'O';
 
         static bool GlideOn = false;
-        static bool NewKeyStroke = false;
+        static bool NewKeyStroke = false;   //Make the program only move the player if he it an array if he isnt in glide mode
+
+        static int Score = 10;
+        static int ScoreX = 1;  //dont need to be global 
+        static int ScoreY = 1;  //dont need to be global 
 
         static void Main(string[] args)
         {
             //main function of the game calls other fucntion. Egine of the game
             bool gameover = false;
+            Console.Clear();
             Console.CursorVisible = false;
-            Spawn(out MeX, out MeY);
+            SpawnSnake(SnakeX, SnakeY, SnakeSize);
+            Spawn(out FoodX, out FoodY);
             while (!gameover)
             {
                 GetkeyStroke();
-                Move();
+                if (GlideOn || NewKeyStroke)
+                    Move();
+                if (SnakeX[0] == FoodX && SnakeY[0] == FoodY)
+                    EatFood();
                 Limits();
                 Draw();
-                Wait(50);
+                Wait(65);
             }
         }
         public static void GetkeyStroke()
@@ -45,19 +61,23 @@ namespace Snake_Game
                 switch (k)
                 {
                     case ConsoleKey.D:
-                        MeDir = 'E';
+                        OldSnakeDir = SnakeDir;
+                        SnakeDir = 'E';
                         NewKeyStroke = true;
                         break;
                     case ConsoleKey.A:
-                        MeDir = 'W';
+                        OldSnakeDir = SnakeDir;
+                        SnakeDir = 'W';
                         NewKeyStroke = true;
                         break;
                     case ConsoleKey.W:
-                        MeDir = 'N';
+                        OldSnakeDir = SnakeDir;
+                        SnakeDir = 'N';
                         NewKeyStroke = true;
                         break;
                     case ConsoleKey.S:
-                        MeDir = 'S';
+                        OldSnakeDir = SnakeDir;
+                        SnakeDir = 'S';
                         NewKeyStroke = true;
                         break;
                     case ConsoleKey.Q:
@@ -77,39 +97,49 @@ namespace Snake_Game
         }
         public static void Move()
         {
-            //function to move to player (either glide or move a spot)
-            if (GlideOn || NewKeyStroke)
+            //function to move the whole snake
+            //move each part of the snake to the position of the part in front of it in the array
+            NewKeyStroke = false;
+            OldSnakeX = SnakeX[SnakeSize - 1];
+            OldSnakeY = SnakeY[SnakeSize - 1];
+            for (int i = SnakeSize - 1; i > 0; i--)
             {
-                NewKeyStroke = false;
-                OldMeX = MeX;
-                OldMeY = MeY;
-                switch (MeDir)
-                {
-                    case 'N':
-                        MeY--;
-                        break;
-                    case 'S':
-                        MeY++;
-                        break;
-                    case 'W':
-                        MeX--;
-                        break;
-                    case 'E':
-                        MeX++;
-                        break;
-                }
+                SnakeX[i] = SnakeX[i - 1];
+                SnakeY[i] = SnakeY[i - 1];
             }
+            if (SnakeDir == 'N')
+                SnakeY[0]--;
+            if (SnakeDir == 'S')
+                SnakeY[0]++;
+            if (SnakeDir == 'W')
+                SnakeX[0]--;
+            if (SnakeDir == 'E')
+                SnakeX[0]++;
         }
         public static void Draw()
         {
             //function to update the screen and draw all the elements on the screen
-            Console.SetCursorPosition(MeX, MeY);
-            Console.Write(MeChar);
-            Console.SetCursorPosition(OldMeX, OldMeY);
+            Console.SetCursorPosition(ScoreX, ScoreY);
+            Console.Write("Score: " + Score);
+            Console.SetCursorPosition(FoodX, FoodY);
+            Console.Write(FoodChar);
+            for (int i = 0; i < SnakeSize; i++)
+            {
+                Console.SetCursorPosition(SnakeX[i], SnakeY[i]);
+                Console.Write(SnakeChar);
+            }
+            Console.SetCursorPosition(OldSnakeX, OldSnakeY);
             if (!SketchOn)
+                //delete old player position if the player isnt in sketch mode
                 Console.Write(" ");
             else
+                //draw the sketch character if the mode is on
                 Console.Write(SketchChar);
+            if (SnakeX[0] == FoodX && SnakeY[0] == FoodY)
+            { //make the old food disapear if the player ate it
+                Console.SetCursorPosition(OldFoodX, OldFoodY);
+                Console.Write(" ");
+            }
         }
         public static void Limits()
         {
@@ -118,24 +148,42 @@ namespace Snake_Game
             int width;
             int height;
             GetScreenSize(out width, out height);
-            if (MeX < 0)
-                MeX = width - 1;
-            else if (MeX >= width)
-                MeX = 0;
-            else if (MeY < 0)
-                MeY = height - 1;
-            else if (MeY >= height)
-                MeY = 0;
+            for (int i = 0; i < SnakeSize; i++)
+            {
+                if (SnakeX[i] < 0)
+                    SnakeX[i] = width - 1;
+                else if (SnakeX[i] >= width)
+                    SnakeX[i] = 0;
+                else if (SnakeY[i] < 0)
+                    SnakeY[i] = height - 1;
+                else if (SnakeY[i] >= height)
+                    SnakeY[i] = 0;
+            }
         }
         public static void Spawn(out int X, out int Y)
         {
-            //funciton to spawn something at  random location in the window based on the window size
+            //funciton to spawn something at random location in the window based on the window size
             Random rnd = new Random();
             int width;
             int lenght;
             GetScreenSize(out width, out lenght);
             X = rnd.Next(0, width);
             Y = rnd.Next(0, lenght);
+        }
+        public static void SpawnSnake(int[] X, int[] Y, int size)
+        {
+            //Spawn a snake of a given lenght on the X axis\
+            Random rnd = new Random();
+            int width;
+            int lenght;
+            GetScreenSize(out width, out lenght);
+            X[0] = rnd.Next(0, width);
+            Y[0] = rnd.Next(0, lenght);
+            for (int i = 0; i < size - 1; i++)
+            {
+                X[i + 1] = X[i] + 1;
+                Y[i + 1] = Y[i];
+            }
         }
         public static void GetScreenSize(out int X, out int Y)
         {
@@ -150,6 +198,38 @@ namespace Snake_Game
             DateTime stop = DateTime.Now.AddMilliseconds(waittime);
             while (start < stop)
                 start = DateTime.Now;
+        }
+        public static void EatFood()
+        {
+            //function to make a new food spawn and make the score go up if the player ate it
+            OldFoodX = FoodX;
+            OldFoodY = FoodY;
+            Score += 10;
+            Spawn(out FoodX, out FoodY);
+            BiggerSnake();
+            BiggerSnake();
+        }
+        public static void BiggerSnake()
+        {
+            //function to make the snake bigger. basicly make new arrays for the snake position
+            //and put the new position at the position od the old snake end
+            int[] tempX = new int[SnakeSize];
+            int[] tempY = new int[SnakeSize];
+            for (int i = 0; i < SnakeSize; i++)
+            {
+                tempX[i] = SnakeX[i];
+                tempY[i] = SnakeY[i];
+            }
+            SnakeSize++;
+            SnakeX = new int[SnakeSize];
+            SnakeY = new int[SnakeSize];
+            for (int i = 0; i < SnakeSize - 1; i++)
+            {
+                SnakeX[i] = tempX[i];
+                SnakeY[i] = tempY[i];
+            }
+            SnakeX[SnakeSize - 1] = OldSnakeX;
+            SnakeY[SnakeSize - 1] = OldSnakeY;
         }
     }
 }
