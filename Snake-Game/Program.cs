@@ -8,7 +8,6 @@ namespace Snake_Game
         static int[] SnakeX = new int[SnakeSize];
         static int[] SnakeY = new int[SnakeSize];
         static char SnakeDir; //Direction in witch the player is going (west, east, north, south)
-        static char OldSnakeDir;
         static int OldSnakeX;
         static int OldSnakeY;
         static char SnakeChar = 'X';
@@ -26,8 +25,8 @@ namespace Snake_Game
         static bool NewKeyStroke = false;   //Make the program only move the player if he it an array if he isnt in glide mode
 
         static int Score = 10;
-        static int ScoreX = 1;  //dont need to be global 
-        static int ScoreY = 1;  //dont need to be global 
+        static int ScoreX = 1;  
+        static int ScoreY = 1;  
 
         static void Main(string[] args)
         {
@@ -46,7 +45,8 @@ namespace Snake_Game
                     EatFood();
                 Limits();
                 Draw();
-                Wait(65);
+                Wait(150);
+                gameover = GameOver();
             }
         }
         public static void GetkeyStroke()
@@ -58,40 +58,39 @@ namespace Snake_Game
             {
                 //was there a key interupt
                 k = Console.ReadKey(true).Key;
-                switch (k)
+                if (k == ConsoleKey.D && SnakeDir != 'W')
                 {
-                    case ConsoleKey.D:
-                        OldSnakeDir = SnakeDir;
-                        SnakeDir = 'E';
-                        NewKeyStroke = true;
-                        break;
-                    case ConsoleKey.A:
-                        OldSnakeDir = SnakeDir;
-                        SnakeDir = 'W';
-                        NewKeyStroke = true;
-                        break;
-                    case ConsoleKey.W:
-                        OldSnakeDir = SnakeDir;
-                        SnakeDir = 'N';
-                        NewKeyStroke = true;
-                        break;
-                    case ConsoleKey.S:
-                        OldSnakeDir = SnakeDir;
-                        SnakeDir = 'S';
-                        NewKeyStroke = true;
-                        break;
-                    case ConsoleKey.Q:
-                        if (!SketchOn)
-                            SketchOn = true;
-                        else
-                            SketchOn = false;
-                        break;
-                    case ConsoleKey.E:
-                        if (!GlideOn)
-                            GlideOn = true;
-                        else
-                            GlideOn = false; ;
-                        break;
+                    SnakeDir = 'E';
+                    NewKeyStroke = true;
+                }
+                else if (k == ConsoleKey.A && SnakeDir != 'E')
+                {
+                    SnakeDir = 'W';
+                    NewKeyStroke = true;
+                }
+                else if (k == ConsoleKey.W && SnakeDir != 'S')
+                {
+                    SnakeDir = 'N';
+                    NewKeyStroke = true;
+                }
+                else if (k == ConsoleKey.S && SnakeDir != 'N')
+                {
+                    SnakeDir = 'S';
+                    NewKeyStroke = true;
+                }
+                else if (k == ConsoleKey.Q)
+                {
+                    if (!SketchOn)
+                        SketchOn = true;
+                    else
+                        SketchOn = false;
+                }
+                else if (k == ConsoleKey.E)
+                {
+                    if (!GlideOn)
+                        GlideOn = true;
+                    else
+                        GlideOn = false; ;
                 }
             }
         }
@@ -107,14 +106,21 @@ namespace Snake_Game
                 SnakeX[i] = SnakeX[i - 1];
                 SnakeY[i] = SnakeY[i - 1];
             }
-            if (SnakeDir == 'N')
-                SnakeY[0]--;
-            if (SnakeDir == 'S')
-                SnakeY[0]++;
-            if (SnakeDir == 'W')
-                SnakeX[0]--;
-            if (SnakeDir == 'E')
-                SnakeX[0]++;
+            switch (SnakeDir)
+            {
+                case 'N':
+                    SnakeY[0]--;
+                    break;
+                case 'S':
+                    SnakeY[0]++;
+                    break;
+                case 'W':
+                    SnakeX[0]--;
+                    break;
+                case 'E':
+                    SnakeX[0]++;
+                    break;
+            }
         }
         public static void Draw()
         {
@@ -207,7 +213,6 @@ namespace Snake_Game
             Score += 10;
             Spawn(out FoodX, out FoodY);
             BiggerSnake();
-            BiggerSnake();
         }
         public static void BiggerSnake()
         {
@@ -230,6 +235,19 @@ namespace Snake_Game
             }
             SnakeX[SnakeSize - 1] = OldSnakeX;
             SnakeY[SnakeSize - 1] = OldSnakeY;
+        }
+        public static bool GameOver()
+        {
+            //Check if the snake head is colliding with the tail
+            bool gameover = false;
+            for (int i = 1; i < SnakeSize; i++)
+            {
+                if (SnakeX[0] == SnakeX[i] && SnakeY[0] == SnakeY[i])
+                    gameover = true;
+            }
+            if (Score <= 0)
+                gameover = true;
+            return gameover;
         }
     }
 }
