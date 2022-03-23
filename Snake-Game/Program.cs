@@ -10,19 +10,19 @@ namespace Snake_Game
         static char SnakeDir; //Direction in witch the player is going (west, east, north, south)
         static int OldSnakeX;
         static int OldSnakeY;
-        static char SnakeChar = 'X';
+        static ConsoleColor SnakeColor = ConsoleColor.Green;
 
         static int FoodX;
         static int FoodY;
         static int OldFoodX;
         static int OldFoodY;
-        static char FoodChar = '$';
+        static string FoodChar = "🪙";
 
         static bool SketchOn = false;
         static char SketchChar = 'O';
 
         static bool GlideOn = false;
-        static bool NewKeyStroke = false;   //Make the program only move the player if he it an array if he isnt in glide mode
+        static bool NewKeyStroke = false;   //Make the program only move the player if he it a key if he isnt in glide mode
 
         static int Score = 10;
         static int ScoreX = 1;  
@@ -45,8 +45,8 @@ namespace Snake_Game
                     EatFood();
                 Limits();
                 Draw();
-                Wait(150);
-                gameover = GameOver();
+                Wait(65);
+                gameover = GameOver(); //should i call this before draw?
             }
         }
         public static void GetkeyStroke()
@@ -125,6 +125,10 @@ namespace Snake_Game
         public static void Draw()
         {
             //function to update the screen and draw all the elements on the screen
+            ConsoleColor background = ConsoleColor.DarkGray;
+
+            Console.BackgroundColor = background;
+            Console.Clear();
             Console.SetCursorPosition(ScoreX, ScoreY);
             Console.Write("Score: " + Score);
             Console.SetCursorPosition(FoodX, FoodY);
@@ -132,11 +136,13 @@ namespace Snake_Game
             for (int i = 0; i < SnakeSize; i++)
             {
                 Console.SetCursorPosition(SnakeX[i], SnakeY[i]);
-                Console.Write(SnakeChar);
+                Console.BackgroundColor = SnakeColor;
+                Console.Write(" ");
             }
+            Console.BackgroundColor = background;
             Console.SetCursorPosition(OldSnakeX, OldSnakeY);
             if (!SketchOn)
-                //delete old player position if the player isnt in sketch mode
+                //delete old player position if the player isnt in sketch mode  
                 Console.Write(" ");
             else
                 //draw the sketch character if the mode is on
