@@ -11,7 +11,6 @@ namespace Snake_Game
         static char SnakeDir; //Direction in witch the player is going (west, east, north, south)
         static int OldSnakeX;
         static int OldSnakeY;
-        static ConsoleColor SnakeColor = ConsoleColor.Blue;   
 
         //basic food item(coin) variable declaration section
         static int FoodX;
@@ -20,9 +19,8 @@ namespace Snake_Game
         static int OldFoodY;
 
         //Food that make the snake crawl variable
-        const double CRAWLFOODINTERVAL = 20;   //Interval in second of witch a crawl food spawn
-        const double CRAWLDURATION = 5;        //amount of time the snake will crawl
-        static bool CrawlFood; //is a crawl food currently spawned
+        const double CRAWLDURATION = 5;    //amount of time the snake will crawl
+        static bool CrawlFood;            //is a crawl food currently spawned
         static int CrawlFoodX;
         static int CrawlFoodY;
         static int OldCrawlFoodX;
@@ -30,44 +28,39 @@ namespace Snake_Game
         static double CrawlStop;
 
         //Food To make the screeen biger declaration section
-        const int WINDOWFOODINTERVAL = 10; //interval in second at witch this food spawn
-        const int WINDOWFOODFACTOR = 4;      //speed at wich the food move the lower it is the slower it will go
-        const double WINDOWFOODDURATION = 999999999;  //time that the food stay on the screen 
-        const double WINDOWSIZEGAIN = 1.15; //size gain of the window when the sake eat it 
-        static bool WindowFood;
-        static bool WindowMaxSize;   //becomes true if the max size of the windwo is hitted
-        static double WindowFoodStop;   //time at witch the window food will disapear
+        const int WINDOWFOODSIZE = 2;       //lenght of this food item
+        static bool WindowFood;           //Is a window food curently spawned
+        static bool WindowMaxSize;       //becomes true if the max size of the windwo is hitted
         static int WindowFoodX;
         static int WindowFoodY;
         static int OldWindowFoodX;
         static int OldWindowFoodY;
-        static char WindowFoodDirX;
-        static char WindowFoodDirY;
-        static ConsoleColor WindowFoodColor = ConsoleColor.Red;
+        static char WindowFoodDirX;         //Direction of the food on the X axis
+        static char WindowFoodDirY;        //Direction of the food on the Y axis
 
         //Movement variable declaration section
         static bool GlideOn = false;
         static bool NewKeyStroke = false;   //Make the program only move the player if he it a key if he isn't in glide mode
 
-        //score variables declaration section
-        static int Score;
-
         //Overall game variables declaration section
-        const int SCOREZONEY = 4;    //size (Y) of the section for the stats
-        static int WINDOWX;     
-        static int GAMEY;   //the y size of the playing zone
-        static int WINDOWY;   
-        static ConsoleColor Background = ConsoleColor.DarkGray; 
+        const int SCOREZONEY = 4;     //size (Y) of the section for the stats
+        static int WindowX;          //X size of the window
+        static int WindowY;         //Y size of the window
+        static int GameY;          //the y size of the playing zone
+        static int Score;
+        static double BaseSpeed = 65;   //By default set to "normal" speed
+        static double GameSpeed;
+        static ConsoleColor Background = ConsoleColor.DarkGray;
         static ConsoleColor FontColor = ConsoleColor.White;
-        static double GameSpeed;    
-        static TimeSpan gametimer;  
-
+        static TimeSpan gametimer;
 
         static void Main(string[] args)
         {
+            // function that calls menu by default it calls the main menu
             int choice = 0;
             do
             {
+                //loops until the user choose the choice 4 wich is to quit the game
                 switch (choice)
                 {
                     case 0:
@@ -80,6 +73,9 @@ namespace Snake_Game
                     case 2:
                         choice = DisplayInstructions();
                         break;
+                    case 3:
+                        choice = DifficultyMenu();
+                        break;
                 }
             } while (choice != 4);
         }
@@ -91,7 +87,7 @@ namespace Snake_Game
             const int MINCHOICE = 1;    //minimum value of the menu choice
             const int MAXCHOICE = 4;   //maximum value of the menu choice 
             const int MENUY = 20;     //size of the menu window on the Y axis  
-            ConsoleColor selectedcolor = ConsoleColor.Red;
+            ConsoleColor selectedcolor = ConsoleColor.Red;      //color of the selected option
             bool confirm = false;   //was the user choice confirmed
             int menuX;             //Size of the menu window on the X axis 
             int choice = MINCHOICE;
@@ -104,7 +100,7 @@ namespace Snake_Game
             logo[3] = "▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▀▄▄▀▄▄▀▄▄▀▄▄▄▄▄▀";
             message[0] = "1.   Play!";
             message[1] = "2.   Intsructions";
-            message[2] = "3.   Settings";
+            message[2] = "3.   Difficulty";
             message[3] = "4.   Exit";
             message[4] = "Use the arrow keys to change your selection and press enter to confirm it";
             menuX = logo[0].Length;     //all the lines are of the same lenght
@@ -113,39 +109,46 @@ namespace Snake_Game
             Console.SetWindowSize(menuX, MENUY);
             Console.CursorVisible = false;
             Console.ForegroundColor = FontColor;
-            for (int i = 0; i < logo.Length; i++)
+            for (int i = 0; i < logo.Length; i++)   //draw the logo
                 Console.WriteLine(logo[i]);
             do
             {
+                //loops until the user confirm his choice
                 for (int i = 0; i < textY.Length; i++)
                 {
+                    //draw the text
                     if (choice == i + 1)
+                        //if we are drawing the choice of the user change the font color
                         Console.ForegroundColor = selectedcolor;
                     CenterText(message[i], menuX, textY[i]);
                     Console.ForegroundColor = FontColor;
                 }
-                confirm = MenuInput(ref choice, MAXCHOICE);
+                confirm = MenuInput(ref choice, MINCHOICE, MAXCHOICE);
             } while (!confirm);
             return choice;
         }
         public static int DisplayInstructions()
         {
-            //function that draw the instruction of the game on the screen
-            const int WINDOWBUFFERX = 16;   //how much free space we want from the text on the X axis   
-            int windowX = 0;
-            int windowY = 16;
-            int textY;
-            string[] instruction = new string[9];
+            //function that draw the instruction of the game on the screen.
+            const int WINDOWBUFFERX = 20;   //how much free space we want between the text and the window border on the X axis 
+            int windowX = 0;     //size of the window on the X axis
+            int windowY = 17;   //size of the window on the Y axis
+            int textY;         //y coordonate of the text
+            string[] instruction = new string[13];
             instruction[0] = "This is a modified version of the snake game. This game is played through";
-            instruction[1] = "the console. Use the arrow keys to move. The basic food item is the green";
-            instruction[2] = "dollard bill. Every time you eat it your snake get bigger, the game get";
-            instruction[3] = "slightly faster and your score goes up of 10 points. In this modified version,";
-            instruction[4] = "you can go through walls, every time you do so you loose 10 points of your ";
-            instruction[5] = "score. You loose when your head touches your tail or when your scores goes";
-            instruction[6] = "down to 0.";
-            instruction[7] = " ";
-            instruction[8] = "Press any key to go back to the main menu";
-            textY = (windowY - instruction.Length) / 2;
+            instruction[1] = "the console. Use the arrow keys or W A S D to move. The basic food item is the";
+            instruction[2] = "green dollar bill, every time you eat it your snake gets bigger, the game gets";
+            instruction[3] = "slightly faster and your score goes up by 10 points. In this modified version,";
+            instruction[4] = "you can go through walls, every time you do so you loose 10 points, and the snake";
+            instruction[5] = "head reappears at a random location on the screen. There is also an item that spawns";
+            instruction[6] = "every 20 seconds that when is eaten stops the snake from gliding and makes it 'crawl'";
+            instruction[7] = "for 5 seconds. Every 35 seconds a red square spawns when eaten the console gets";
+            instruction[8] = "bigger. It disappears if it's not eaten in 6.5 seconds and stops spawning after the";
+            instruction[9] = "console reached the max size. You loose when the head of the snake touches the tail";
+            instruction[10] = "or when your score goes down to 0";
+            instruction[11] = " ";
+            instruction[12] = "Press any key to go back to the main menu";
+            textY = (windowY - instruction.Length) / 2;         //determining the size of the screen
             for (int i = 0; i < instruction.Length; i++)
             {
                 if (instruction[i].Length > windowX)
@@ -156,6 +159,7 @@ namespace Snake_Game
             Console.CursorVisible = false;
             for (int i = 0; i < instruction.Length; i++)
             {
+                //draw the instruction on the screen
                 CenterText(instruction[i], windowX, textY);
                 textY++;
             }
@@ -170,11 +174,11 @@ namespace Snake_Game
             const int MINCHOICE = 1;    //minimum value of the menu choice
             const int MAXCHOICE = 3;   //maximum value of the menu choice 
             const int MENUY = 18;     //size of the menu window on the Y axis  
-            ConsoleColor selectedcolor = ConsoleColor.Red;
+            ConsoleColor selectedcolor = ConsoleColor.Red;      //color of the selected option
             bool confirm = false;   //was the user choice confirmed
             int menuX;             //Size of the menu window on the X axis 
             int choice = MINCHOICE;
-            int[] textY = { 10, 12, 14 };     //Y coordonate of the text in the menu
+            int[] textY = { 10, 12, 14 };            //Y coordonate of the text in the menu
             string[] message = new string[3];       //the messages we want outputted to the console
             string[] logo = new string[8];         //number of lines the logo has
             logo[0] = "                                                                           ";
@@ -194,17 +198,20 @@ namespace Snake_Game
             Console.CursorVisible = false;
             Console.ForegroundColor = FontColor;
             for (int i = 0; i < logo.Length; i++)
-                Console.WriteLine(logo[i]);
+                Console.WriteLine(logo[i]);         //draw the logo
             do
             {
+                //loops until the user confirm his choice
                 for (int i = 0; i < textY.Length; i++)
                 {
+                    //draw the text
                     if (choice == i + 1)
+                        //if the text we are drawing is the selected choice change the font color
                         Console.ForegroundColor = selectedcolor;
                     CenterText(message[i], menuX, textY[i]);
                     Console.ForegroundColor = FontColor;
                 }
-                confirm = MenuInput(ref choice, MAXCHOICE);
+                confirm = MenuInput(ref choice, MINCHOICE, MAXCHOICE);
             } while (!confirm);
             switch (choice)
             {
@@ -218,28 +225,94 @@ namespace Snake_Game
             }
             return choice;
         }
-        public static void CenterText(string message, int windowX, int TextY)
+        public static int DifficultyMenu()
+        {
+            //Menu to select the difficulty of the game
+            //The Choices are: very easy, easy, normal, hard, very hard
+            //ascii font generated using https://fsymbols.com/generators/carty/
+            const int MINCHOICE = 1;    //minimum value of the menu choice
+            const int MAXCHOICE = 5;   //maximum value of the menu choice 
+            const int MENUY = 19;     //size of the menu window on the Y axis  
+            ConsoleColor selectedcolor = ConsoleColor.Red;      //color of the selected option
+            bool confirm = false;   //was the user choice confirmed
+            int menuX;             //Size of the menu window on the X axis 
+            int choice = 3;
+            int[] textY = { 5, 7, 9, 11, 13, 16 };     //Y coordonate of the text in the menu
+            string[] message = new string[6];       //the messages we want outputted to the console
+            string[] logo = new string[3];         //number of lines the logo has
+            logo[0] = "█▄─▄▄▀█▄─▄█▄─▄▄─█▄─▄▄─█▄─▄█─▄▄▄─█▄─██─▄█▄─▄███─▄─▄─█▄─█─▄█";
+            logo[1] = "██─██─██─███─▄████─▄████─██─███▀██─██─███─██▀███─████▄─▄██";
+            logo[2] = "▀▄▄▄▄▀▀▄▄▄▀▄▄▄▀▀▀▄▄▄▀▀▀▄▄▄▀▄▄▄▄▄▀▀▄▄▄▄▀▀▄▄▄▄▄▀▀▄▄▄▀▀▀▄▄▄▀▀";
+            message[0] = "Very Hard";
+            message[1] = "Hard";
+            message[2] = "Normal";
+            message[3] = "Easy";
+            message[4] = "Very Easy";
+            message[5] = "Select a Difficulty to go back to the main menu";
+            menuX = logo[0].Length;
+            Console.Clear();
+            Console.SetWindowSize(menuX, MENUY);
+            Console.CursorVisible = false;
+            Console.ForegroundColor = FontColor;
+            for (int i = 0; i < logo.Length; i++)
+                Console.WriteLine(logo[i]);         //draw the logo
+            do
+            {
+                //loops until the user confirm his choice
+                for (int i = 0; i < textY.Length; i++)
+                {
+                    if (choice == i + 1)
+                        //if we are drawing the user choice, change the font color
+                        Console.ForegroundColor = selectedcolor;
+                    CenterText(message[i], menuX, textY[i]);
+                    Console.ForegroundColor = FontColor;
+                }
+                confirm = MenuInput(ref choice, MINCHOICE, MAXCHOICE);
+            } while (!confirm);
+            switch (choice)
+            {
+                //change the base gamespeed base on the difficulty choice of the user
+                case 1:
+                    BaseSpeed = 35;
+                    break;
+                case 2:
+                    BaseSpeed = 50;
+                    break;
+                case 3:
+                    BaseSpeed = 65;
+                    break;
+                case 4:
+                    BaseSpeed = 80;
+                    break;
+                case 5:
+                    BaseSpeed = 100;
+                    break;
+            }
+            return 0;
+        }
+        public static void CenterText(string message, int windowX, int textY)
         {
             //function to center text horizontally on the screen. the first parameter is
             //the message we want to display, the second one is the width of the console
             //and the third one is the y position of the text
             int textX;
             textX = (windowX - message.Length) / 2;
-            Console.SetCursorPosition(textX, TextY);
+            Console.SetCursorPosition(textX, textY);
             Console.Write(message);
         }
-        public static bool MenuInput(ref int choice, int maxchoice)
+        public static bool MenuInput(ref int choice, int minchoice, int maxchoice)
         {
-            //this function change the user choice based on their input. the first parameter is the 
-            //variable we want to change and the second one is the max value we want it to be
-            bool confirm = false;   //the the user confirmed his choice
+            //this function change the user choice based on their input. the first parameter is the variable 
+            //we want to change and the second one is the minimum value the choice can be and the third one is
+            //the maximum value the choice can be. return true if the choice was confirmed else it return false
+            bool confirm = false;   //is the choice confirmed
             ConsoleKey k;
             k = ConsoleKey.NoName;
             if (Console.KeyAvailable)
             {
                 //was there a key interupt
                 k = Console.ReadKey(true).Key;
-                if (k == ConsoleKey.UpArrow && choice > 1)
+                if (k == ConsoleKey.UpArrow && choice > minchoice)
                     choice--;
                 else if (k == ConsoleKey.DownArrow && choice < maxchoice)
                     choice++;
@@ -251,28 +324,29 @@ namespace Snake_Game
         public static void Gameloop()
         {
             //main function of the game calls other fucntion. Egine of the game
-            DateTime starttime = DateTime.Now;
+            const double CRAWLFOODINTERVAL = 20;   //Interval in second of witch a crawl food spawn
+            const int WINDOWFOODINTERVAL = 35;    //interval in second at witch this food spawn
+            const int WINDOWFOODFACTOR = 4;      //speed at wich the food move the lower it is the slower it will go
+            const double WINDOWFOODDURATION = 6.5;  //time that the food stay on the screen 
             bool gameover = false;
             int framecount = 0;
+            double WindowFoodStop = 0;   //time at witch the window food will disapear
+            DateTime starttime = DateTime.Now;
             GlideOn = true;
             CrawlFood = false;
             WindowFood = false;
             WindowMaxSize = false;
             SnakeDir = 'W';
-            WINDOWX = 62;
-            GAMEY = 35;
-            WINDOWY = GAMEY + 4;
-            Score = 9999999;
-            GameSpeed = 50;
-            Console.SetWindowSize(WINDOWX, WINDOWY);
+            WindowX = 62;
+            GameY = 35;
+            WindowY = GameY + SCOREZONEY;
+            Score = 10;
+            GameSpeed = BaseSpeed;
+            Console.SetWindowSize(WindowX, WindowY);
             Console.CursorVisible = false;
             SetBackgroundColor(Background);
-            SpawnSnake(20);
+            SpawnSnake(15);
             Spawn(out FoodX, out FoodY);
-            Spawn(out WindowFoodX, out WindowFoodY);
-            RandomDirWindowFood();
-            WindowFood = true;
-            WindowFoodStop = gametimer.TotalSeconds + WINDOWFOODDURATION;
             while (!gameover)
             {
                 //loops until the game is over
@@ -289,20 +363,22 @@ namespace Snake_Game
                     CrawlFood = true;
                 }
                 if (gametimer.TotalSeconds >= CrawlStop)    //reactivate glide mode after the wanted amount of time
+                {
                     GlideOn = true;
-                /*if (Math.Round(gametimer.TotalSeconds) % WINDOWFOODINTERVAL == 0 && !WindowFood && !WindowMaxSize)
+                }
+                if (Math.Round(gametimer.TotalSeconds) % WINDOWFOODINTERVAL == 0 && Math.Round(gametimer.TotalSeconds) != 0 && !WindowFood && !WindowMaxSize)
                 {
                     //spawn the food when the wanted interval passed
                     Spawn(out WindowFoodX, out WindowFoodY);
                     RandomDirWindowFood();
                     WindowFood = true;
                     WindowFoodStop = gametimer.TotalSeconds + WINDOWFOODDURATION;
-                }*/
+                }
                 if (gametimer.TotalSeconds >= WindowFoodStop)   //make the window food disapear when the wanted interval passed
                     WindowFoodDisapear();
                 if (WindowFood && framecount % WINDOWFOODFACTOR == 0)
                 {
-                    //move and check the limits of the window food 
+                    //move and check the limits of the window food
                     WindowFoodLimits();
                     MoveWindowFood();
                 }
@@ -323,32 +399,25 @@ namespace Snake_Game
             {
                 //was there a key interupt
                 k = Console.ReadKey(true).Key;
-                if (k == ConsoleKey.D && SnakeDir != 'W')
+                if (k == ConsoleKey.RightArrow || k == ConsoleKey.D && SnakeDir != 'W')
                 {
                     SnakeDir = 'E';
                     NewKeyStroke = true;
                 }
-                else if (k == ConsoleKey.A && SnakeDir != 'E')
+                else if (k == ConsoleKey.LeftArrow || k == ConsoleKey.A && SnakeDir != 'E')
                 {
                     SnakeDir = 'W';
                     NewKeyStroke = true;
                 }
-                else if (k == ConsoleKey.W && SnakeDir != 'S')
+                else if (k == ConsoleKey.UpArrow || k == ConsoleKey.W && SnakeDir != 'S')
                 {
                     SnakeDir = 'N';
                     NewKeyStroke = true;
                 }
-                else if (k == ConsoleKey.S && SnakeDir != 'N')
+                else if (k == ConsoleKey.DownArrow || k == ConsoleKey.S && SnakeDir != 'N')
                 {
                     SnakeDir = 'S';
                     NewKeyStroke = true;
-                }
-                else if (k == ConsoleKey.E)
-                {
-                    if (!GlideOn)
-                        GlideOn = true;
-                    else
-                        GlideOn = false; ;
                 }
             }
         }
@@ -386,25 +455,27 @@ namespace Snake_Game
         {
             //function to update the screen and draw all the elements on the screen        
             const int SCOREX = 2;
-            int TIMERX = WINDOWX - 28;
-            int SCOREY = WINDOWY - 2;
-            int TIMERY = WINDOWY - 2;
+            int timerX = WindowX - 28;
+            int scoreY = WindowY - Convert.ToInt32(SCOREZONEY / 2);
+            int timerY = scoreY;
             string foodchar = "$";
+            ConsoleColor SnakeColor = ConsoleColor.Blue;
             ConsoleColor foodbackground = ConsoleColor.DarkGreen;
             ConsoleColor crawlfoodcolor = ConsoleColor.Yellow;
+            ConsoleColor WindowFoodColor = ConsoleColor.Red;
             ConsoleColor bordercolor = FontColor;
             Console.BackgroundColor = bordercolor;
-            for (int i = 0; i < WINDOWX; i++)
+            for (int i = 0; i < WindowX; i++)
             {
                 //Draw the border
-                Console.SetCursorPosition(i, GAMEY);
+                Console.SetCursorPosition(i, GameY);
                 Console.Write(" ");
             }
             // Draw the stats and delete old things from the screen
             Console.BackgroundColor = Background;
-            Console.SetCursorPosition(SCOREX, SCOREY);
+            Console.SetCursorPosition(SCOREX, scoreY);
             Console.Write("Score : " + Score + " ");
-            Console.SetCursorPosition(TIMERX, TIMERY);
+            Console.SetCursorPosition(timerX, timerY);
             Console.Write("Time : {0} minutes {1} seconds", gametimer.Minutes, gametimer.Seconds);
             Console.SetCursorPosition(OldSnakeX, OldSnakeY);
             Console.Write(" ");
@@ -444,33 +515,34 @@ namespace Snake_Game
             {
                 Console.BackgroundColor = WindowFoodColor;
                 Console.SetCursorPosition(WindowFoodX, WindowFoodY);
-                Console.Write(" ");
+                for (int i = 0; i < WINDOWFOODSIZE; i++)
+                    Console.Write(" ");     //draw this food item in the wanted lenght
             }
-            Console.BackgroundColor = Background;       //should this be ELSE where
+            Console.BackgroundColor = Background;
         }
         public static void Limits(int scoreloss)
         {
             //function that set the limits of the games to the border of the window
-            //when the player is supposed to be out of the screen he reappears on the other side
+            //when the player is supposed to be out of the screen the snake head reapears at a random location in the screen
             //the parameter "scoreloss" is how much we want the score to drop when the player go through a wall
             if (SnakeX[0] < 0)
             {
-                SnakeX[0] = WINDOWX - 1;
+                Spawn(out SnakeX[0], out SnakeY[0]);
                 Score -= scoreloss;
             }
-            else if (SnakeX[0] >= WINDOWX)
+            else if (SnakeX[0] >= WindowX)
             {
-                SnakeX[0] = 0;
+                Spawn(out SnakeX[0], out SnakeY[0]);
                 Score -= scoreloss;
             }
             else if (SnakeY[0] < 0)
             {
-                SnakeY[0] = GAMEY - 1;
+                Spawn(out SnakeX[0], out SnakeY[0]);
                 Score -= scoreloss;
             }
-            else if (SnakeY[0] >= GAMEY)
+            else if (SnakeY[0] >= GameY)
             {
-                SnakeY[0] = 0;
+                Spawn(out SnakeX[0], out SnakeY[0]);
                 Score -= scoreloss;
             }
         }
@@ -480,12 +552,13 @@ namespace Snake_Game
             //the function loops trhough the snake coordinate and if it is in the snake will
             //give new random coordinate until it's not in the snake any more
             Random rnd = new Random();
-            bool intail = false;
+            bool intail;
             do
             {
-                X = rnd.Next(0, WINDOWX);
-                Y = rnd.Next(0, GAMEY);
-                for (int i = 0; i < SnakeSize; i++)
+                X = rnd.Next(0, WindowX);
+                Y = rnd.Next(0, GameY);
+                intail = false;
+                for (int i = 1; i < SnakeSize; i++)
                 {
                     if (X == SnakeX[i] && Y == SnakeY[i])
                     {
@@ -493,7 +566,6 @@ namespace Snake_Game
                         intail = true;
                         break;
                     }
-                    intail = false;
                 }
             } while (intail);
         }
@@ -505,20 +577,14 @@ namespace Snake_Game
             SnakeSize = size;
             SnakeX = new int[SnakeSize];
             SnakeY = new int[SnakeSize];
-            SnakeX[0] = rnd.Next(0 + BUFFER, WINDOWX - SnakeSize);   //make sure the whole snake is spawning in the window
-            SnakeY[0] = rnd.Next(0, GAMEY);
+            SnakeX[0] = rnd.Next(0 + BUFFER, WindowX - SnakeSize);   //make sure the whole snake is spawning in the window
+            SnakeY[0] = rnd.Next(0, GameY);
             for (int i = 0; i < size - 1; i++)
             {
                 SnakeX[i + 1] = SnakeX[i] + 1;
                 SnakeY[i + 1] = SnakeY[i];
             }
         }
-        /*public static void GetScreenSize(out int X, out int Y)
-        {
-            //function to get the size of the screen
-            X = Console.WindowWidth;
-            Y = Console.WindowHeight;
-        }*/
         public static void Wait(double waittime)
         {
             //function to delay the game a given amount of time wich is determined by the argument
@@ -530,12 +596,12 @@ namespace Snake_Game
         public static void EatFood()
         {
             //function to make a new food spawn, make the score go up, the game going faster and the snake bigger
-            const double REDUCESPEED = 2.3;     //how much in ms the game will go faster
+            const double REDUCESPEED = 2.65;     //how much in ms the game will go faster
             OldFoodX = FoodX;
             OldFoodY = FoodY;
             Score += 10;
             GameSpeed -= REDUCESPEED;
-            BiggerSnake(8);
+            BiggerSnake(10);
             Spawn(out FoodX, out FoodY);
         }
         public static void BiggerSnake(int sizegain)
@@ -546,6 +612,7 @@ namespace Snake_Game
             //the values in the new array the parameter is how much biger we want the snake to be
             for (int j = 0; j < sizegain; j++)
             {
+                //loops until the snake is bigger of the wanted size
                 int[] tempX = new int[SnakeSize];
                 int[] tempY = new int[SnakeSize];
                 for (int i = 0; i < SnakeSize; i++)
@@ -609,8 +676,8 @@ namespace Snake_Game
                 EatFood();
             if (SnakeX[0] == CrawlFoodX && SnakeY[0] == CrawlFoodY && CrawlFood)
                 EatCrawlFood();
-            if (SnakeX[0] == WindowFoodX && SnakeY[0] == WindowFoodY && WindowFood)
-                EatWindowFood();
+            if (SnakeX[0] >= WindowFoodX && SnakeX[0] <= WindowFoodX + WINDOWFOODSIZE - 1 && SnakeY[0] == WindowFoodY && WindowFood)
+                EatWindowFood(1.15);
         }
         public static void RandomDirWindowFood()
         {
@@ -618,7 +685,7 @@ namespace Snake_Game
             Random rnd = new Random();
             int Xdir;
             int Ydir;
-            Xdir = rnd.Next(1, 3);  
+            Xdir = rnd.Next(1, 3);  //double check if 3 is really excluded and 1 included
             Ydir = rnd.Next(1, 3);
             if (Xdir == 1)
                 WindowFoodDirX = 'W';
@@ -628,49 +695,31 @@ namespace Snake_Game
                 WindowFoodDirY = 'N';
             else
                 WindowFoodDirY = 'S';
-
         }
         public static void WindowFoodLimits()
         {
             //function to invert the food direction in function of wich wall he hitted
-
-            bool onsnake = false;
-            if ((WindowFoodX == 0) || (WindowFoodX == FoodX + 1 && WindowFoodY == FoodY) ||
-                (WindowFoodX == CrawlFoodX + 1 && WindowFoodY == CrawlFoodY && CrawlFood))
+            if ((WindowFoodX == 0) || (WindowFoodX == FoodX + 1 && WindowFoodY == FoodY) || (WindowFoodX == CrawlFoodX + 1 && WindowFoodY == CrawlFoodY && CrawlFood))
                 WindowFoodDirX = 'E';
-            else if ((WindowFoodX == WINDOWX - 1) || (WindowFoodX == FoodX - 1 && WindowFoodY == FoodY) ||
-                (WindowFoodX == CrawlFoodX - 1 && WindowFoodY == CrawlFoodY && CrawlFood))
+            else if ((WindowFoodX + WINDOWFOODSIZE - 1 == WindowX - 1) || (WindowFoodX + WINDOWFOODSIZE - 1 == FoodX - 1 && WindowFoodY == FoodY) || (WindowFoodX + WINDOWFOODSIZE - 1 == CrawlFoodX - 1 && WindowFoodY == CrawlFoodY && CrawlFood))
                 WindowFoodDirX = 'W';
-            if ((WindowFoodY == 0) || (WindowFoodX == FoodX && WindowFoodY == FoodY + 1) ||
-                (WindowFoodX == CrawlFoodX && WindowFoodY == CrawlFoodY + 1 && CrawlFood))
+            if ((WindowFoodY == 0) || (WindowFoodX == FoodX && WindowFoodY == FoodY + 1) || (WindowFoodX == CrawlFoodX && WindowFoodY == CrawlFoodY + 1 && CrawlFood))
                 WindowFoodDirY = 'S';
-            else if ((WindowFoodY == GAMEY - 1) || (WindowFoodX == FoodX && WindowFoodY == FoodY - 1) ||
-                (WindowFoodX == CrawlFoodX && WindowFoodY == CrawlFoodY - 1 && CrawlFood))
+            else if ((WindowFoodY == GameY - 1) || (WindowFoodX == FoodX && WindowFoodY == FoodY - 1) || (WindowFoodX == CrawlFoodX && WindowFoodY == CrawlFoodY - 1 && CrawlFood))
                 WindowFoodDirY = 'N';
             for (int i = 1; i < SnakeSize; i++)
             {
+                //check if touching the snake tail and if so change teh position accordingly
+                //cant use break becasue some time the item touches multiple "position" of the snake tail
+                //and the direction need to change according to this
                 if (WindowFoodX == SnakeX[i] && WindowFoodY == SnakeY[i] + 1)
-                {
                     WindowFoodDirY = 'S';
-                    onsnake = true;
-                }
                 else if (WindowFoodX == SnakeX[i] && WindowFoodY == SnakeY[i] - 1)
-                {
                     WindowFoodDirY = 'N';
-                    onsnake = true;
-                }
                 if (WindowFoodX == SnakeX[i] + 1 && WindowFoodY == SnakeY[i])
-                {
                     WindowFoodDirX = 'E';
-                    onsnake = true;
-                }
-                else if (WindowFoodX == SnakeX[i] - 1 && WindowFoodY == SnakeY[i])
-                {
+                else if (WindowFoodX + WINDOWFOODSIZE - 1 == SnakeX[i] - 1 && WindowFoodY == SnakeY[i])
                     WindowFoodDirX = 'W';
-                    onsnake = true;
-                }
-                if (onsnake)
-                    break;
             }
         }
         public static void MoveWindowFood()
@@ -687,25 +736,27 @@ namespace Snake_Game
             else
                 WindowFoodY++;
         }
-        public static void EatWindowFood()
+        public static void EatWindowFood(double sizegain)
         {
             //function that make the window food disapear and applies all the wanted effect
-            //on the game when the snake eat it
+            //on the game when the snake eat it.
             WindowFood = false;
             OldWindowFoodX = WindowFoodX;
             OldWindowFoodY = WindowFoodY;
-            WINDOWX = Convert.ToInt32(WINDOWX * WINDOWSIZEGAIN);
-            GAMEY = Convert.ToInt32(GAMEY * WINDOWSIZEGAIN);
-            WINDOWY = GAMEY + SCOREZONEY;
+            WindowX = Convert.ToInt32(WindowX * sizegain);
+            GameY = Convert.ToInt32(GameY * sizegain);
+            WindowY = GameY + SCOREZONEY;
             try
             {
-                Console.SetWindowSize(WINDOWX, WINDOWY);
+                //tries making the screen bigger
+                Console.SetWindowSize(WindowX, WindowY);
             }
             catch (System.ArgumentOutOfRangeException)
             {
-                WINDOWX = Convert.ToInt32(WINDOWX / WINDOWSIZEGAIN);
-                GAMEY = Convert.ToInt32(GAMEY / WINDOWSIZEGAIN);
-                WINDOWY = GAMEY + SCOREZONEY;
+                //if it can't, revert back to the old window size
+                WindowX = Convert.ToInt32(WindowX / sizegain);
+                GameY = Convert.ToInt32(GameY / sizegain);
+                WindowY = GameY + SCOREZONEY;
                 WindowMaxSize = true;
             }
             Console.Clear();
